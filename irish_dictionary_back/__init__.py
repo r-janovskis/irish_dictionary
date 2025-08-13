@@ -23,7 +23,7 @@ def create_app():
     #migrate.init_app(app, db)
 
     # Import tables from models.py
-    from .models import Word
+    from .models import Word, Type, Category, WordCategory
 
     with app.app_context():
         db.create_all()
@@ -45,7 +45,9 @@ def create_app():
             words_list.append({
                 "id": word.id,
                 "word": word.word,
-                "translation": word.translation
+                "translation": word.translation,
+                "category": word.category.category_name if word.category else None,
+                "type": word.word_type.type_name if word.word_type else None
             })
         return jsonify({"words": words_list}, 200)
     
@@ -59,6 +61,28 @@ def create_app():
 
         return jsonify({"Message": f"Word '{new_word.word}' successfully added to the database!"}, 201)
     
+    @app.route('/add_type', methods = ['POST'])
+    def add_type():
+        json_data = request.get_json()
+        new_type = Type(type_name = json_data['type_name'])
+
+        db.session.add(new_type)
+        db.session.commit()
+
+        return jsonify({'Message': f"New type '{json_data['type_name']}' successfully added!"}, 201)
     
+
+    @app.route('/add_category', methods = ['POST'])
+    def add_type():
+        json_data = request.get_json()
+        new_category = Category(type_name = json_data['category_name'])
+
+        db.session.add(new_category)
+        db.session.commit()
+
+        return jsonify({'Message': f"New type '{json_data['category_name']}' successfully added!"}, 201)
+
+
+
     return app
 
