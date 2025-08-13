@@ -28,5 +28,6 @@ In this project I will try to create a simple web app that could help:
 
 I would try to create a web app that would use:
 
-- **Python (Flask)** to create a logic and some basic web interface
-- **mySQL** as a database where to save irish words with their English translations and pronaunciations
+- **Python (Flask)** to create a logic and back-end for the environment
+- **PostgreSQL** as a database where to save irish words with their English translations, pronaunciations and other bits
+- **JavaScript and React** will be used to create a user-friendly front-end to the application
