@@ -23,7 +23,7 @@ def create_app():
     #migrate.init_app(app, db)
 
     # Import tables from models.py
-    from .models import Word
+    from .models import Word, Type, Category, WordCategory
 
     with app.app_context():
         db.create_all()
@@ -42,23 +42,69 @@ def create_app():
         
         words_list = []
         for word in all_words:
+
+            # Get categories for the word
+            categories = WordCategory.query.filter_by(word_id = word.word_id).all()
+            category_names = []
+            for category in categories:
+                category_name = Category.query.filter_by(category_id = category.category_id).first().category_name
+                category_names.append(category_name)
+            # Get the type name for the word
+            type = Type.query.filter_by(type_id = word.word_type).first().type_name
+            
+
             words_list.append({
-                "id": word.id,
+                "id": word.word_id,
                 "word": word.word,
-                "translation": word.translation
+                "translation": word.translation,
+                "category": category_names,
+                "type": type
             })
         return jsonify({"words": words_list}, 200)
     
     @app.route('/add_word', methods = ['POST'])
     def add_word():
         json_data = request.get_json()
-        new_word = Word(word = json_data['word'], translation = json_data['translation'])
 
+        # Extract information from request and create a new Word instance
+        type_id = Type.query.filter_by(type_name = json_data['type']).first().type_id
+        new_word = Word(word = json_data['word'], translation = json_data['translation'], word_type = type_id)
+
+        # Commit the new word
         db.session.add(new_word)
+        db.session.commit()
+
+        # Extract WordCategory information
+        category_id = Category.query.filter_by(category_name = json_data['category']).first().category_id
+        new_word_category = WordCategory(word_id = new_word.word_id, category_id = category_id)
+        
+        db.session.add(new_word_category)
         db.session.commit()
 
         return jsonify({"Message": f"Word '{new_word.word}' successfully added to the database!"}, 201)
     
+    @app.route('/add_type', methods = ['POST'])
+    def add_type():
+        json_data = request.get_json()
+        new_type = Type(type_name = json_data['type_name'])
+
+        db.session.add(new_type)
+        db.session.commit()
+
+        return jsonify({'Message': f"New type '{json_data['type_name']}' successfully added!"}, 201)
     
+
+    @app.route('/add_category', methods = ['POST'])
+    def add_category():
+        json_data = request.get_json()
+        new_category = Category(category_name = json_data['category_name'])
+
+        db.session.add(new_category)
+        db.session.commit()
+
+        return jsonify({'Message': f"New type '{json_data['category_name']}' successfully added!"}, 201)
+
+
+
     return app
 
